@@ -64,17 +64,6 @@ Examples:
 EOF
 }
 
-get_dhcp_name() {
-  MAC=$1
-  DHCP_NAME=$(grep ${MAC} /tmp/dhcp.leases | awk '{print $4}')
-  if [ "$DHCP_NAME" = "*" ]; then
-    return 1
-  else
-    echo ${DHCP_NAME}
-    return 0
-  fi
-}
-
 for param in "$@"; do
   test_for_mode $param || \
   test_for_ipv4 $param || \
@@ -98,12 +87,6 @@ if [ "${MODE}" == "event" ]; then
         -t "${MQTT_STATUS_TOPIC}${MAC//:/-}/event" \
         -m $EVENT
 
-      DHCP_NAME=$(get_dhcp_name ${MAC}) && mosquitto_pub \
-          -h ${MQTT_SERVER} \
-          -u ${MQTT_USER} -P ${MQTT_PASSWORD} -i ${MQTT_ID} \
-          -t "${MQTT_STATUS_TOPIC}${MAC//:/-}/dhcp-name" \
-          -m ${DHCP_NAME} \
-          -r
     fi
   done
 elif [ "${MODE}" == "lastseen" ]; then
@@ -141,12 +124,6 @@ elif [ "${MODE}" == "lastseen" ]; then
           -m ${CURRENT_TIMESTAMP_ISO8601} \
           -r
 
-        DHCP_NAME=$(get_dhcp_name ${MAC}) && mosquitto_pub \
-          -h ${MQTT_SERVER} \
-          -u ${MQTT_USER} -P ${MQTT_PASSWORD} -i ${MQTT_ID} \
-          -t "${MQTT_STATUS_TOPIC}${MAC//:/-}/dhcp-name" \
-          -m ${DHCP_NAME} \
-          -r
       done
     done
     sleep $LAST_SEEN_UPDATE_PERIOD_S
